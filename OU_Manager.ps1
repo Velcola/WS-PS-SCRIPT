@@ -1,8 +1,15 @@
+# Det er bare å forandre på "parentOU" og "defaultOUs" variablene for enkle forandringer :)
+
+# --------------------
+
+$parentOU = "bedrift"
 $defaultOUs = @{
     "salg" = 10
     "produksjon" = 20
     "drift" = 8
 }
+
+# --------------------
 
 $domainDN = (Get-ADDomain).DistinguishedName
 
@@ -13,8 +20,9 @@ function Display-Menu {
   / _ \| | | | |  \/  | /_\ | \| | /_\ / __| __| _ \
  | (_) | |_| | | |\/| |/ _ \| .` |/ _ \ (_ | _||   /
   \___/ \___/  |_|  |_/_/ \_\_|\_/_/ \_\___|___|_|_\
+                (Laget av Patrick :>)
 
-  Recognized domain: $($domainDN)
+  Auto-recognized domain: $($domainDN)
 ===========================================================
 "@ -ForegroundColor Cyan
     Write-Host "1. Modify Organizational Units and user limits" -ForegroundColor Cyan
@@ -39,14 +47,25 @@ function Modify-OUs {
 }
 
 function Create-OUs {
+    $parentOUPath = "OU=$parentOU,$domainDN"
+
+    # sjekk om parent ou eksisterer
+    if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$parentOU'")) {
+        New-ADOrganizationalUnit -Name $parentOU -Path $domainDN
+        Write-Host "Created Parent OU: $parentOU" -ForegroundColor Green
+    } else {
+        Write-Host "Parent OU '$parentOU' already exists. Skipping." -ForegroundColor Yellow
+    }
+
+    # lag sub ous inni parent
     foreach ($ou in $defaultOUs.Keys) {
-        $ouPath = "OU=$ou,$domainDN"
+        $ouPath = "OU=$ou,$parentOUPath"
 
         if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'")) {
-            New-ADOrganizationalUnit -Name $ou -Path $domainDN
-            Write-Host "Created OU: $ou" -ForegroundColor Green
+            New-ADOrganizationalUnit -Name $ou -Path $parentOUPath
+            Write-Host "Created OU: $ou under '$parentOU'" -ForegroundColor Green
         } else {
-            Write-Host "OU $ou already exists. Skipping." -ForegroundColor Yellow
+            Write-Host "OU '$ou' already exists under '$parentOU'. Skipping." -ForegroundColor Yellow
         }
     }
 }
@@ -59,8 +78,10 @@ function Import-Users {
     }
     
     $users = Import-Csv $csvPath
+    $parentOUPath = "OU=bedrift,$domainDN"
+    
     foreach ($ou in $defaultOUs.Keys) {
-        $ouPath = (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'" | Select-Object -ExpandProperty DistinguishedName)
+        $ouPath = "OU=$ou,$parentOUPath"
         $filteredUsers = $users | Where-Object { $_.Department -eq $ou } | Select-Object -First $defaultOUs[$ou]
         
         foreach ($user in $filteredUsers) {
