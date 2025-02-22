@@ -29,6 +29,7 @@ function Display-Menu {
     Write-Host "2. Proceed with default settings" -ForegroundColor Cyan
     Write-Host "3. Exit" -ForegroundColor Cyan
     Write-Host "`n"
+    Write-Host "IMPORTANT: Make sure CSV file is in the same directory as this script. Name has to be 'users.csv'."
 
     $choice = Read-Host "$>> "
     return $choice
@@ -71,11 +72,18 @@ function Create-OUs {
 }
 
 function Import-Users {
-    $csvPath = Read-Host "Enter path to the CSV file (e.g., C:\\users.csv)"
+    $scriptPath = $PSScriptRoot # mappen hvor scriptet befinner seg
+    $csvPath = Join-Path -Path $scriptPath -ChildPath "users.csv"
+
+    # sjekk om users.csv finnes i samme mappe som script
     if (!(Test-Path $csvPath)) {
-        Write-Host "CSV file not found. Exiting." -ForegroundColor Red
+        Write-Host "`n[ERROR] Could not find 'users.csv' in the script directory: $scriptPath" -ForegroundColor Red
+        Write-Host "Please place 'users.csv' in the same folder as this script and try again." -ForegroundColor Yellow
+        Pause
         return
     }
+
+    Write-Host "Found users.csv in the script directory. Proceeding with import..." -ForegroundColor Green
     
     $users = Import-Csv $csvPath
     $parentOUPath = "OU=bedrift,$domainDN"
