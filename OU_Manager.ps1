@@ -44,8 +44,7 @@ function View-Settings {
         Write-Host "$ou : $userCount users" -ForegroundColor Green
     }
 
-    Write-Host "`nPress any key to return to the main menu..." -ForegroundColor Cyan
-    Read-Host
+    Pause
 }
 
 function Create-OUs {
@@ -80,7 +79,6 @@ function Import-Users {
     if (!(Test-Path $csvPath)) {
         Write-Host "`n[ERROR] Could not find 'users.csv' in the script directory: $scriptPath" -ForegroundColor Red
         Write-Host "Please place 'users.csv' in the same folder as this script and try again." -ForegroundColor Yellow
-        Pause
         return
     }
 
