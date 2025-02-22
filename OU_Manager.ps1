@@ -29,7 +29,7 @@ function Display-Menu {
     Write-Host "2. Proceed with default settings" -ForegroundColor Cyan
     Write-Host "3. Exit" -ForegroundColor Cyan
     Write-Host "`n"
-    Write-Host "IMPORTANT: Make sure CSV file is in the same directory as this script. Name has to be 'users.csv'."
+    Write-Host "IMPORTANT: Make sure CSV file is in the same directory as this script. Name has to be 'users.csv'." -ForegroundColor Yellow
 
     $choice = Read-Host "$>> "
     return $choice
