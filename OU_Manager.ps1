@@ -16,10 +16,10 @@ function Display-Menu {
 
   Recognized domain: $($domainDN)
 ===========================================================
-"@
-    Write-Host "1. Modify Organizational Units and user limits"
-    Write-Host "2. Proceed with default settings"
-    Write-Host "3. Exit"
+"@ -ForegroundColor Cyan
+    Write-Host "1. Modify Organizational Units and user limits" -ForegroundColor Cyan
+    Write-Host "2. Proceed with default settings" -ForegroundColor Cyan
+    Write-Host "3. Exit" -ForegroundColor Cyan
     Write-Host "`n"
 
     $choice = Read-Host "$>> "
@@ -33,7 +33,7 @@ function Modify-OUs {
         if($newLimit -match "^\d+$") {
             $defaultOUs[$ou] = [int]$newLimit
         } else {
-            Write-Host "Invalid user input, keeping the default value of $($defaultOUs[$ou])"
+            Write-Host "Invalid user input, keeping the default value of $($defaultOUs[$ou])" -ForegroundColor Red
         }
     }
 }
@@ -44,9 +44,9 @@ function Create-OUs {
 
         if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'")) {
             New-ADOrganizationalUnit -Name $ou -Path $domainDN
-            Write-Host "Created OU: $ou"
+            Write-Host "Created OU: $ou" -ForegroundColor Green
         } else {
-            Write-Host "OU $ou already exists. Skipping."
+            Write-Host "OU $ou already exists. Skipping." -ForegroundColor Yellow
         }
     }
 }
@@ -54,7 +54,7 @@ function Create-OUs {
 function Import-Users {
     $csvPath = Read-Host "Enter path to the CSV file (e.g., C:\\users.csv)"
     if (!(Test-Path $csvPath)) {
-        Write-Host "CSV file not found. Exiting."
+        Write-Host "CSV file not found. Exiting." -ForegroundColor Red
         return
     }
     
@@ -73,10 +73,9 @@ function Import-Users {
                 #New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -SamAccountName $username `
                 #    -UserPrincipalName "$username@yourdomain.com" -Path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) `
                 #    -PassThru | Enable-ADacc
-                Write-Host "Adding user to: $ouPath"
-                Write-Host "Created user: $fullname in $ou"
+                Write-Host "Created $fullname in $ou ---- ($ouPath)" -ForegroundColor Green
             } else {
-                Write-Host "User $fullname already exists. Skipping."
+                Write-Host "User $fullname already exists. Skipping." -ForegroundColor Yellow
             }
         }
     }
@@ -91,9 +90,9 @@ while ($true) {
         "2" {
             Create-OUs
             Import-Users
-            break
+            Pause
         }
         "3" { exit }
-        default { Write-Host "Invalid option, please try again." }
+        default { Write-Host "Invalid option, please try again." -ForegroundColor Red }
     }
 }
