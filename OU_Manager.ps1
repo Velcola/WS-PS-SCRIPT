@@ -25,7 +25,7 @@ function Display-Menu {
   Auto-recognized domain: $($domainDN)
 ===========================================================
 "@ -ForegroundColor Cyan
-    Write-Host "1. Modify settings" -ForegroundColor Cyan
+    Write-Host "1. View settings" -ForegroundColor Cyan
     Write-Host "2. Proceed with default settings" -ForegroundColor Cyan
     Write-Host "3. Exit" -ForegroundColor Cyan
     Write-Host "`n"
@@ -35,19 +35,17 @@ function Display-Menu {
     return $choice
 }
 
-function Modify-OUs {
-    foreach ($ou in $defaultOUs.Keys) {
-        while ($true) {
-            $newLimit = Read-Host "Input number of users for $ou (Current: $($defaultOUs[$ou]))"
+function View-Settings {
+    Write-Host "Parent OU: $parentOU" -ForegroundColor Cyan
 
-            if ($newLimit -match "^\d+$") {
-                $defaultOUs[$ou] = [int]$newLimit
-                break
-            } else {
-                Write-Host "Invalid input. Please enter a valid number." -ForegroundColor Red
-            }
-        }
+    Write-Host "User Distribution in OUs:" -ForegroundColor Cyan
+    foreach ($ou in $defaultOUs.Keys) {
+        $userCount = $defaultOUs[$ou]
+        Write-Host "$ou : $userCount users" -ForegroundColor Green
     }
+
+    Write-Host "`nPress any key to return to the main menu..." -ForegroundColor Cyan
+    Read-Host
 }
 
 function Create-OUs {
@@ -118,7 +116,7 @@ while ($true) {
     $choice = Display-Menu
 
     switch ($choice) {
-        "1" { Modify-OUs }
+        "1" { View-Settings }
         "2" {
             Create-OUs
             Import-Users
