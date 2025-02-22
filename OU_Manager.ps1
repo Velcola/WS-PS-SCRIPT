@@ -43,7 +43,7 @@ function Create-OUs {
         $ouPath = "OU=$ou,$domainDN"
 
         if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'")) {
-            New-ADOrganizationalUnit -Name $ou -Path "DC=yourdomain,DC=com"
+            New-ADOrganizationalUnit -Name $ou -Path $domainDN
             Write-Host "Created OU: $ou"
         } else {
             Write-Host "OU $ou already exists. Skipping."
@@ -69,9 +69,10 @@ function Import-Users {
             $password = "Passord1"  # Standard passord, forandre ved behov
             
             if (-not (Get-ADUser -Filter "SamAccountName -eq '$username'")) {
-                New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -SamAccountName $username `
-                    -UserPrincipalName "$username@yourdomain.com" -Path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) `
-                    -Enabled $true
+                New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -DisplayName $fullname -SamAccountName $username -UserPrincipalName "$username@$env:USERDNSDOMAIN" -path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force)
+                #New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -SamAccountName $username `
+                #    -UserPrincipalName "$username@yourdomain.com" -Path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) `
+                #    -PassThru | Enable-ADacc
                 Write-Host "Created user: $fullname in $ou"
             } else {
                 Write-Host "User $fullname already exists. Skipping."
