@@ -1,5 +1,9 @@
-# Det er bare å forandre på "parentOU" og "defaultOUs" variablene for enkle forandringer :)
+if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
+    Write-Host "[ERROR] Active Directory module not found. Install it first." -ForegroundColor Red
+    exit
+}
 
+# Det er bare å forandre på "parentOU" og "defaultOUs" variablene for enkle forandringer :)
 # --------------------
 
 $parentOU = "bedrift"
@@ -37,36 +41,39 @@ function Display-Menu {
 
 function View-Settings {
     Write-Host "Parent OU: $parentOU" -ForegroundColor Cyan
-    Write-Host "`n"
-    Write-Host "User Distribution in OUs:" -ForegroundColor Cyan
+    Write-Host "\nUser Distribution in OUs:" -ForegroundColor Cyan
     foreach ($ou in $defaultOUs.Keys) {
         $userCount = $defaultOUs[$ou]
         Write-Host "$ou : $userCount users" -ForegroundColor Green
     }
-
     Pause
 }
 
 function Create-OUs {
     $parentOUPath = "OU=$parentOU,$domainDN"
-
-    # sjekk om parent ou eksisterer
-    if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$parentOU'")) {
-        New-ADOrganizationalUnit -Name $parentOU -Path $domainDN
-        Write-Host "Created Parent OU: $parentOU" -ForegroundColor Green
-    } else {
-        Write-Host "Parent OU '$parentOU' already exists. Skipping." -ForegroundColor Yellow
+    try {
+        if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$parentOU'")) {
+            New-ADOrganizationalUnit -Name $parentOU -Path $domainDN -ErrorAction Stop
+            Write-Host "Created Parent OU: $parentOU" -ForegroundColor Green
+        } else {
+            Write-Host "Parent OU '$parentOU' already exists. Skipping." -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "[ERROR] Failed to create Parent OU: $_" -ForegroundColor Red
+        return
     }
-
-    # lag sub ous inni parent
+    
     foreach ($ou in $defaultOUs.Keys) {
         $ouPath = "OU=$ou,$parentOUPath"
-
-        if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'")) {
-            New-ADOrganizationalUnit -Name $ou -Path $parentOUPath
-            Write-Host "Created OU: $ou under '$parentOU'" -ForegroundColor Green
-        } else {
-            Write-Host "OU '$ou' already exists under '$parentOU'. Skipping." -ForegroundColor Yellow
+        try {
+            if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'")) {
+                New-ADOrganizationalUnit -Name $ou -Path $parentOUPath -ErrorAction Stop
+                Write-Host "Created OU: $ou under '$parentOU'" -ForegroundColor Green
+            } else {
+                Write-Host "OU '$ou' already exists under '$parentOU'. Skipping." -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "[ERROR] Failed to create OU '$ou': $_" -ForegroundColor Red
         }
     }
 }
@@ -96,14 +103,15 @@ function Import-Users {
             $fullname = $user.Name
             $password = "Passord1"  # Standard passord, forandre ved behov
             
-            if (-not (Get-ADUser -Filter "SamAccountName -eq '$username'")) {
-                New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -DisplayName $fullname -SamAccountName $username -UserPrincipalName "$username@$env:USERDNSDOMAIN" -path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force)
-                #New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -SamAccountName $username `
-                #    -UserPrincipalName "$username@yourdomain.com" -Path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) `
-                #    -PassThru | Enable-ADacc
-                Write-Host "Created $fullname in $ou ---- ($ouPath)" -ForegroundColor Green
-            } else {
-                Write-Host "User $fullname already exists. Skipping." -ForegroundColor Yellow
+            try {
+                if (-not (Get-ADUser -Filter "SamAccountName -eq '$username'")) {
+                    New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -DisplayName $fullname -SamAccountName $username -UserPrincipalName "$username@$env:USERDNSDOMAIN" -Path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) -ErrorAction Stop
+                    Write-Host "Created $fullname in $ou ($ouPath)" -ForegroundColor Green
+                } else {
+                    Write-Host "User $fullname already exists. Skipping." -ForegroundColor Yellow
+                }
+            } catch {
+                Write-Host "[ERROR] Failed to create user '$fullname': $_" -ForegroundColor Red
             }
         }
     }
