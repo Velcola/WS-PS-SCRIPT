@@ -60,7 +60,7 @@ function Import-Users {
     
     $users = Import-Csv $csvPath
     foreach ($ou in $defaultOUs.Keys) {
-        $ouPath = "OU=$ou,$domainDN"
+        $ouPath = (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'" | Select-Object -ExpandProperty DistinguishedName)
         $filteredUsers = $users | Where-Object { $_.Department -eq $ou } | Select-Object -First $defaultOUs[$ou]
         
         foreach ($user in $filteredUsers) {
@@ -73,6 +73,7 @@ function Import-Users {
                 #New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -SamAccountName $username `
                 #    -UserPrincipalName "$username@yourdomain.com" -Path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) `
                 #    -PassThru | Enable-ADacc
+                Write-Host "Adding user to: $ouPath"
                 Write-Host "Created user: $fullname in $ou"
             } else {
                 Write-Host "User $fullname already exists. Skipping."
