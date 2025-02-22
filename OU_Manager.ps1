@@ -37,7 +37,7 @@ function Display-Menu {
 
 function View-Settings {
     Write-Host "Parent OU: $parentOU" -ForegroundColor Cyan
-
+    Write-Host "`n"
     Write-Host "User Distribution in OUs:" -ForegroundColor Cyan
     foreach ($ou in $defaultOUs.Keys) {
         $userCount = $defaultOUs[$ou]
