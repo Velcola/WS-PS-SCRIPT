@@ -25,7 +25,7 @@ function Display-Menu {
   Auto-recognized domain: $($domainDN)
 ===========================================================
 "@ -ForegroundColor Cyan
-    Write-Host "1. Modify Organizational Units and user limits" -ForegroundColor Cyan
+    Write-Host "1. Modify settings" -ForegroundColor Cyan
     Write-Host "2. Proceed with default settings" -ForegroundColor Cyan
     Write-Host "3. Exit" -ForegroundColor Cyan
     Write-Host "`n"
@@ -37,12 +37,15 @@ function Display-Menu {
 
 function Modify-OUs {
     foreach ($ou in $defaultOUs.Keys) {
-        $newLimit = Read-Host "Input number of users for $ou (Current: $($defaultOUs[$ou]))"
+        while ($true) {
+            $newLimit = Read-Host "Input number of users for $ou (Current: $($defaultOUs[$ou]))"
 
-        if($newLimit -match "^\d+$") {
-            $defaultOUs[$ou] = [int]$newLimit
-        } else {
-            Write-Host "Invalid user input, keeping the default value of $($defaultOUs[$ou])" -ForegroundColor Red
+            if ($newLimit -match "^\d+$") {
+                $defaultOUs[$ou] = [int]$newLimit
+                break
+            } else {
+                Write-Host "Invalid input. Please enter a valid number." -ForegroundColor Red
+            }
         }
     }
 }
