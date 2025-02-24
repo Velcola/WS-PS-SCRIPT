@@ -93,7 +93,7 @@ function Import-Users {
     
     $users = Import-Csv $csvPath
     $parentOUPath = "OU=bedrift,$domainDN"
-    
+
     foreach ($ou in $defaultOUs.Keys) {
         $ouPath = "OU=$ou,$parentOUPath"
         $filteredUsers = $users | Where-Object { $_.Department -eq $ou } | Select-Object -First $defaultOUs[$ou]
@@ -102,11 +102,46 @@ function Import-Users {
             $username = $user.SAMAccountName
             $fullname = $user.Name
             $password = "Passord1"  # Standard passord, forandre ved behov
-            
+
+            # Build user parameters dynamically
+            $userParams = @{
+                Name              = $fullname
+                GivenName         = $user.GivenName
+                Surname           = $user.Surname
+                DisplayName       = $fullname
+                SamAccountName    = $username
+                UserPrincipalName = "$username@$env:USERDNSDOMAIN"
+                Path              = $ouPath
+                AccountPassword   = (ConvertTo-SecureString $password -AsPlainText -Force)
+                Enabled           = $true
+            }
+
+            # Optional fields: Only add them if they exist in CSV
+            if ($user.PSObject.Properties.Name -contains "Email")              { $userParams["EmailAddress"] = $user.Email }
+            if ($user.PSObject.Properties.Name -contains "MobilePhone")        { $userParams["MobilePhone"] = $user.MobilePhone }
+            if ($user.PSObject.Properties.Name -contains "WorkPhone")          { $userParams["OfficePhone"] = $user.WorkPhone }
+            if ($user.PSObject.Properties.Name -contains "StreetAddress")      { $userParams["StreetAddress"] = $user.StreetAddress }
+            if ($user.PSObject.Properties.Name -contains "City")               { $userParams["City"] = $user.City }
+            if ($user.PSObject.Properties.Name -contains "State")              { $userParams["State"] = $user.State }
+            if ($user.PSObject.Properties.Name -contains "PostalCode")         { $userParams["PostalCode"] = $user.PostalCode }
+            if ($user.PSObject.Properties.Name -contains "Country")            { $userParams["Country"] = $user.Country }
+
             try {
                 if (-not (Get-ADUser -Filter "SamAccountName -eq '$username'")) {
-                    New-ADUser -Name $fullname -GivenName $user.GivenName -Surname $user.Surname -DisplayName $fullname -SamAccountName $username -UserPrincipalName "$username@$env:USERDNSDOMAIN" -Path $ouPath -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) -ErrorAction Stop
+                    New-ADUser @userParams -ErrorAction Stop
                     Write-Host "Created $fullname in $ou ($ouPath)" -ForegroundColor Green
+
+                    if ($user.PSObject.Properties.Name -contains "PasswordNeverExpires" -and $user.PasswordNeverExpires -eq "TRUE") {
+                        Set-ADUser -Identity $username -PasswordNeverExpires $true
+                        Write-Host "Password never expires enabled for $fullname" -ForegroundColor Cyan
+                    }
+
+                    if ($user.PSObject.Properties.Name -contains "PasswordExpiryDate" -and $user.PasswordExpiryDate) {
+                        $expiryDate = [datetime]::ParseExact($user.PasswordExpiryDate, "yyyy-MM-dd", $null)
+                        Set-ADUser -Identity $username -Replace @{ "msDS-UserPasswordExpiryTimeComputed" = $expiryDate.ToFileTimeUtc() }
+                        Write-Host "Password expiry set to $expiryDate for $fullname" -ForegroundColor Cyan
+                    }
+
                 } else {
                     Write-Host "User $fullname already exists. Skipping." -ForegroundColor Yellow
                 }
