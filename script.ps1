@@ -136,12 +136,6 @@ function Import-Users {
                         Write-Host "Password never expires enabled for $fullname" -ForegroundColor Cyan
                     }
 
-                    if ($user.PSObject.Properties.Name -contains "PasswordExpiryDate" -and $user.PasswordExpiryDate) {
-                        $expiryDate = [datetime]::ParseExact($user.PasswordExpiryDate, "yyyy-MM-dd", $null)
-                        Set-ADUser -Identity $username -Replace @{ "msDS-UserPasswordExpiryTimeComputed" = $expiryDate.ToFileTimeUtc() }
-                        Write-Host "Password expiry set to $expiryDate for $fullname" -ForegroundColor Cyan
-                    }
-
                 } else {
                     Write-Host "User $fullname already exists. Skipping." -ForegroundColor Yellow
                 }

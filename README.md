@@ -40,19 +40,19 @@ asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,456 Elm St,Los Angeles,C
 ### Example 4: **Password Expiry Options**
 
 ```csv
-SAMAccountName,Name,GivenName,Surname,Email,PasswordNeverExpires,PasswordExpiryDate,Department
-jdoe,John Doe,John,Doe,john.doe@example.com,TRUE,,
-asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,2025-06-30,produksjon
-btaylor,Bob Taylor,Bob,Taylor,bob.taylor@example.com,,,drift
+SAMAccountName,Name,GivenName,Surname,Email,PasswordNeverExpires,Department
+jdoe,John Doe,John,Doe,john.doe@example.com,TRUE,salg
+asmith,Alice Smith,Alice,Smith,alice.smith@example.com,TRUE,produksjon
+btaylor,Bob Taylor,Bob,Taylor,bob.taylor@example.com,,drift
 ```
 
 ### Example 5: **Mixed CSV (Demonstrates Robustness)**
 
 ```csv
-SAMAccountName,Name,GivenName,Surname,Email,MobilePhone,StreetAddress,City,Department,PasswordNeverExpires,PasswordExpiryDate,ExtraColumn
-jdoe,John Doe,John,Doe,john.doe@example.com,123456789,123 Main St,New York,salg,TRUE,,
-asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,456 Elm St,,produksjon,,2025-06-30,SomeData
-btaylor,Bob Taylor,Bob,Taylor,bob.taylor@example.com,,,drift,,,
+SAMAccountName,Name,GivenName,Surname,Email,MobilePhone,StreetAddress,City,Department,PasswordNeverExpires
+jdoe,John Doe,John,Doe,john.doe@example.com,123456789,123 Main St,New York,salg,TRUE
+asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,456 Elm St,,produksjon,
+btaylor,Bob Taylor,Bob,Taylor,bob.taylor@example.com,,,drift,TRUE
 ```
 
 ## Setup
