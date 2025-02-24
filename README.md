@@ -7,6 +7,53 @@ This PowerShell script automates the process of creating Organizational Units in
 - **Create Parent and Sub-OUs:** Automatically creates the parent OU and sub-OUs based on predefined settings.
 - **Import Users:** Imports users from a CSV file (`users.csv`) and places them into their respective OUs.
 - **View Settings:** Allows you to view the current parent OU and the number of users assigned to each OU.
+- **Flexible CSV Input:** The script supports a variety of CSV formats, allowing you to provide only the necessary fields while ignoring any missing or extra fields.
+
+## CSV Input Flexibility
+
+This script is **highly flexible** and can handle different CSV formats. Below are examples of various CSV structures that are supported by the script. The fields that are missing will simply be ignored, and the script will still function correctly.
+
+### Example 1: **Minimal CSV (Only Required Fields)**
+
+```csv
+SAMAccountName,Name,GivenName,Surname,Department
+jdoe,John Doe,John,Doe,salg
+asmith,Alice Smith,Alice,Smith,produksjon
+```
+
+### Example 2: **Standard CSV (Common Fields)**
+
+```csv
+SAMAccountName,Name,GivenName,Surname,Email,MobilePhone,WorkPhone,Department
+jdoe,John Doe,John,Doe,john.doe@example.com,123456789,987654321,salg
+asmith,Alice Smith,Alice,Smith,alice.smith@example.com,555123456,,produksjon
+```
+
+### Example 3: **Extended CSV (Including Address Details)**
+
+```csv
+SAMAccountName,Name,GivenName,Surname,Email,MobilePhone,StreetAddress,City,State,PostalCode,Country,Department
+jdoe,John Doe,John,Doe,john.doe@example.com,123456789,123 Main St,New York,NY,10001,USA,salg
+asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,456 Elm St,Los Angeles,CA,90001,USA,produksjon
+```
+
+### Example 4: **Password Expiry Options**
+
+```csv
+SAMAccountName,Name,GivenName,Surname,Email,PasswordNeverExpires,PasswordExpiryDate,Department
+jdoe,John Doe,John,Doe,john.doe@example.com,TRUE,,
+asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,2025-06-30,produksjon
+btaylor,Bob Taylor,Bob,Taylor,bob.taylor@example.com,,,drift
+```
+
+### Example 5: **Mixed CSV (Demonstrates Robustness)**
+
+```csv
+SAMAccountName,Name,GivenName,Surname,Email,MobilePhone,StreetAddress,City,Department,PasswordNeverExpires,PasswordExpiryDate,ExtraColumn
+jdoe,John Doe,John,Doe,john.doe@example.com,123456789,123 Main St,New York,salg,TRUE,,
+asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,456 Elm St,,produksjon,,2025-06-30,SomeData
+btaylor,Bob Taylor,Bob,Taylor,bob.taylor@example.com,,,drift,,,
+```
 
 ## Setup
 
