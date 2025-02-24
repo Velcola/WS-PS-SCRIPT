@@ -1,6 +1,4 @@
-SAMAccountName,Name,GivenName,Surname,Department
-jdoe,John Doe,John,Doe,salg
-asmith,Alice Smith,Alice,Smith,produksjon
-mjohnson,Mike Johnson,Mike,Johnson,drift
-bjones,Betty Jones,Betty,Jones,salg
-tclark,Tom Clark,Tom,Clark,produksjon
+SAMAccountName,Name,GivenName,Surname,Email,MobilePhone,StreetAddress,City,Department,PasswordNeverExpires
+jdoe,John Doe,John,Doe,john.doe@example.com,123456789,123 Main St,New York,salg,TRUE
+asmith,Alice Smith,Alice,Smith,alice.smith@example.com,,456 Elm St,,produksjon,
+btaylor,Bob Taylor,Bob,Taylor,bob.taylor@example.com,,,drift,TRUE
