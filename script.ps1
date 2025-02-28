@@ -6,12 +6,17 @@ if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
 # Det er bare å forandre på "parentOU" og "defaultOUs" variablene for enkle forandringer :)
 # --------------------
 
+$homeFolderName = "Home"
 $parentOU = "bedrift"
 $defaultOUs = @{
     "salg" = 10
     "produksjon" = 20
     "drift" = 8
 }
+
+$enableCreateOUs = $true
+$enableImportUsers = $true
+$enableCreateHomes = $true
 
 # --------------------
 
@@ -146,6 +151,48 @@ function Import-Users {
     }
 }
 
+function Create-Home {
+    try {
+        if (-Not (Test-Path "C:\$homeFolderName")) {
+            mkdir "C:\$homeFolderName" -ErrorAction Stop
+            Write-Host "$homeFolderName folder created." -ForegroundColor Green
+        } else {
+            Write-Host "$homeFolderName folder already exists. Skipping." -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "Failed to create $homeFolderName folder: $_" -ForegroundColor Red
+        return
+    }
+
+    try {
+        $shareName = "Home"
+        $existingShare = Get-SmbShare -Name $shareName -ErrorAction SilentlyContinue
+
+        if (-Not $existingShare) {
+            New-SmbShare -Name $shareName -Path "C:\$homeFolderName" -FullAccess "Everyone" -ErrorAction Stop
+            Write-Host "$homeFolderName folder shared with Everyone (Full Access)." -ForegroundColor Green
+        } else {
+            Write-Host "$homeFolderName folder is already shared. Skipping." -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "Failed to share $homeFolderName folder: $_" -ForegroundColor Red
+    }
+
+    try {
+        foreach ($ou in $defaultOUs.Keys) {
+            $folderPath = "C:\$homeFolderName\$ou"
+            if (-Not (Test-Path $folderPath)) {
+                mkdir $folderPath -ErrorAction Stop
+                Write-Host "Created sub-folder: $ou" -ForegroundColor Green
+            } else {
+                Write-Host "Sub-folder '$ou' already exists. Skipping." -ForegroundColor Yellow
+            }
+        }
+    } catch {
+        Write-Host "Error creating sub-folders: $_" -ForegroundColor Red
+    }
+}
+
 
 while ($true) {
     $choice = Display-Menu
@@ -153,8 +200,36 @@ while ($true) {
     switch ($choice) {
         "1" { View-Settings }
         "2" {
-            Create-OUs
-            Import-Users
+            Write-Host " "
+            Write-Host "======================"  -ForegroundColor Cyan
+            Write-Host "-----CREATING OUS-----"  -ForegroundColor Cyan
+            Write-Host "======================" -ForegroundColor Cyan
+            Write-Host " "
+
+            if ($enableCreateOUs) {
+                Create-OUs
+            } else { Write-Host "Create-OUs function is disabled. You may enable this function in the script file." -ForegroundColor Red }
+
+            Write-Host " "
+            Write-Host "======================"  -ForegroundColor Cyan
+            Write-Host "---IMPORTING USERS---"  -ForegroundColor Cyan
+            Write-Host "======================" -ForegroundColor Cyan
+            Write-Host " "
+
+            if($enableImportUsers) {
+                Import-Users
+            } else { Write-Host "Import-Users function is disabled. You may enable this function in the script file." -ForegroundColor Red }
+
+            Write-Host " "
+            Write-Host "======================"  -ForegroundColor Cyan
+            Write-Host "----CREATING HOME----"  -ForegroundColor Cyan
+            Write-Host "======================" -ForegroundColor Cyan
+            Write-Host " "
+
+            if($enableCreateHomes) {
+                Create-Home
+            } else { Write-Host "Create-Home function is disabled. You may enable this function in the script file." -ForegroundColor Red }
+            
             Pause
         }
         "3" { exit }
